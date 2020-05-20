@@ -6,6 +6,7 @@ namespace ProcessPerformance
 {
     public class PerformanceData
     {
+        public int Threads { get; set; }
         public long ProcessDownloadSpeed { get; set; }
         public long ProcessReceivedData { get; set; }
         public long ProcessUploadSpeed { get; set; }

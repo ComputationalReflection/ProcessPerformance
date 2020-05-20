@@ -45,14 +45,22 @@ namespace ProcessPerformance
             public long networkDownloadSpeed;
         }
 
-        private PerformanceReporter(String processName)
+        private PerformanceReporter(String[] processNames)
         {
-            _processList = () => { return Process.GetProcessesByName(processName).Select(p => p.Id).ToHashSet(); };
+            _processList = () =>
+            {
+                return processNames.Aggregate(new List<int>(), (partial, processName) =>
+                {
+                    partial.AddRange(Process.GetProcessesByName(processName).Select(p => p.Id)); return partial;
+                }).ToHashSet();
+            };
+                
+
         }
 
-        public static PerformanceReporter Create(String processName)
+        public static PerformanceReporter Create(String[] processNames)
         {
-            var performancePresenter = new PerformanceReporter(processName);
+            var performancePresenter = new PerformanceReporter(processNames);
             performancePresenter.Initialise();
             return performancePresenter;
         }
@@ -196,6 +204,7 @@ namespace ProcessPerformance
             {
                 performanceData = new PerformanceData
                 {
+                    Threads = _processList().Count,
                     ProcessDownloadSpeed = Convert.ToInt64((_counters.received / 1000) / timeDifferenceInSeconds),
                     ProcessUploadSpeed = Convert.ToInt64((_counters.sent / 1000) / timeDifferenceInSeconds),
                     ProcessReceivedData = _counters.totalReceived / 1024,
