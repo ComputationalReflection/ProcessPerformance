@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "gHhmLRAB5tiDxgeFc3Zlxpijlery4zW1mtwABoDNcfg/HbeIHie1wSThXQnQ2W/CiL8jnL7zpDz49xaHnui6WA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\VirtualUser\\Source\\Repos\\ProcessPerformance\\ProcessPerformance\\ProcessPerformance.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\VirtualUser\\.nuget\\packages\\microsoft.diagnostics.tracing.traceevent\\2.0.55\\microsoft.diagnostics.tracing.traceevent.2.0.55.nupkg.sha512",
+    "C:\\Users\\VirtualUser\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\4.5.2\\system.runtime.compilerservices.unsafe.4.5.2.nupkg.sha512"
+  ],
+  "logs": []
+}

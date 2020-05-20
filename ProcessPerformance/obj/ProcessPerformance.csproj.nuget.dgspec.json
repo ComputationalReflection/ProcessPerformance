@@ -1,0 +1,69 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\VirtualUser\\Source\\Repos\\ProcessPerformance\\ProcessPerformance\\ProcessPerformance.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\VirtualUser\\Source\\Repos\\ProcessPerformance\\ProcessPerformance\\ProcessPerformance.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\VirtualUser\\Source\\Repos\\ProcessPerformance\\ProcessPerformance\\ProcessPerformance.csproj",
+        "projectName": "ProcessPerformance",
+        "projectPath": "C:\\Users\\VirtualUser\\Source\\Repos\\ProcessPerformance\\ProcessPerformance\\ProcessPerformance.csproj",
+        "packagesPath": "C:\\Users\\VirtualUser\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\VirtualUser\\Source\\Repos\\ProcessPerformance\\ProcessPerformance\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\VirtualUser\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp3.1"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp3.1": {
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netcoreapp3.1": {
+          "dependencies": {
+            "Microsoft.Diagnostics.Tracing.TraceEvent": {
+              "target": "Package",
+              "version": "[2.0.55, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.200\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
