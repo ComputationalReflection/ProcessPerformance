@@ -55,14 +55,17 @@ namespace ProcessPerformance
                 {
                     partial.AddRange(Process.GetProcessesByName(processName).Select(p => p.Id)); return partial;
                 }).ToHashSet();
-            };
-                
+            };            
+        }
 
+        private PerformanceReporter()
+        {
+            _processList = () => { return Process.GetProcesses().Select(p => p.Id).ToHashSet();};
         }
 
         public static PerformanceReporter Create(String[] processNames)
         {
-            var performancePresenter = new PerformanceReporter(processNames);
+            var performancePresenter = processNames.Length == 0 ? new PerformanceReporter() : new PerformanceReporter(processNames);
             performancePresenter.Initialise();
             return performancePresenter;
         }

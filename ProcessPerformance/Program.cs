@@ -10,7 +10,7 @@ namespace ProcessPerformance
     {
         static void Main(string[] args)
         {
-            var processNames = new string[] { "firefox"};
+            var processNames = new string[] { };
             var npr = PerformanceReporter.Create(processNames);
             while (true)
             {
