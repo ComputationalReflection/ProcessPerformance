@@ -10,16 +10,16 @@ namespace ProcessPerformance
     {
         static void Main(string[] args)
         {
-            var processNames = new string[] { "teams", "chrome" };
+            var processNames = new string[] { "firefox"};
             var npr = PerformanceReporter.Create(processNames);
             while (true)
             {
-                Task.Delay(1000).Wait();
+                Task.Delay(500).Wait();
                 var result = npr.GetPerformanceData();
                 
                 Console.WriteLine($"{String.Join('+',processNames)} ({result.Threads} ths) = CPU: { result.ProcessCPUUsage.ToString("0.00")} % | Memory: {result.ProcessMemoryUsage.ToString("N0")} MB | " +
                     $"Process: Sent {result.ProcessSentData.ToString("N0")} KB ({result.ProcessUploadSpeed.ToString("N0")} kbps) - Received {result.ProcessReceivedData.ToString("N0")} KB ({result.ProcessDownloadSpeed.ToString("N0")} kbps) | " +
-                    $"Network: Upload {result.NetworkUploadSpeed.ToString("N0")} kbps - Download {result.NetworkDownloadSpeed.ToString("N0")} kbps");                
+                    $"Network: Sent {result.NetworkSentData.ToString("N0")} KB ({result.NetworkUploadSpeed.ToString("N0")} kbps) - Received {result.NetworkReceivedData.ToString("N0")} KB ({result.NetworkDownloadSpeed.ToString("N0")} kbps)");                
             }
         }
     }

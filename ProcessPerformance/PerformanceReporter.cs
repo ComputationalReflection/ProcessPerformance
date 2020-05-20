@@ -20,27 +20,29 @@ namespace ProcessPerformance
 
         private class Counters
         {
-            //Process network            
-            public long received;
-            public long totalReceived;
-            public long sent;
-            public long totalSent;
+            //Process Network            
+            public long processDownloadSpeed;
+            public long processTotalBytesReceived;
+            public long processUploadSpeed;
+            public long processTotalBytesSent;
 
             //Process CPU
             public DateTime cpuLastTime;
             public TimeSpan cpuLastTotalProcessorTime;
             public DateTime cpuCurrentTime;
             public TimeSpan cpuCurrentTotalProcessorTime;
-            public double processorTime;
+            public double cpuProcessorTime;
 
             //Process Memory
             public long physicalMemory;
 
-            //Network
+            //System Network
             public DateTime networkLastTime;
             public DateTime networkCurrentTime;
             public long networkLastBytesSend;
             public long networkLastBytesReceived;
+            public long networkTotalBytesSend;
+            public long networkTotalBytesReceived;
             public long networkUploadSpeed;
             public long networkDownloadSpeed;
         }
@@ -83,8 +85,8 @@ namespace ProcessPerformance
                     {
                         if (_processList().Contains(data.ProcessID))
                         {
-                            Interlocked.Add(ref _counters.received, data.size * 8);
-                            Interlocked.Add(ref _counters.totalReceived, data.size);
+                            Interlocked.Add(ref _counters.processDownloadSpeed, data.size * 8);
+                            Interlocked.Add(ref _counters.processTotalBytesReceived, data.size);
                         }
                     };
 
@@ -92,8 +94,8 @@ namespace ProcessPerformance
                     {
                         if (_processList().Contains(data.ProcessID))
                         {
-                            Interlocked.Add(ref _counters.sent, data.size * 8);
-                            Interlocked.Add(ref _counters.totalSent, data.size);
+                            Interlocked.Add(ref _counters.processUploadSpeed, data.size * 8);
+                            Interlocked.Add(ref _counters.processTotalBytesSent, data.size);
                         }
                     };
                     _etwSession.Source.Process();
@@ -137,17 +139,22 @@ namespace ProcessPerformance
                 _counters.networkLastBytesSend = statistics.BytesSent;
                 _counters.networkUploadSpeed = 0L;
                 _counters.networkDownloadSpeed = 0L;
+                _counters.networkTotalBytesReceived = 0L;
+                _counters.networkTotalBytesSend = 0L;
             }
             else
             {
                 _counters.networkCurrentTime = DateTime.Now;
+                var timeDifferenceInSeconds = (_counters.networkCurrentTime - _counters.networkLastTime).TotalSeconds;
                 long networkCurrentBytesReceived = statistics.BytesReceived;
                 long networkCurrentBytesSent = statistics.BytesSent;
-                _counters.networkDownloadSpeed = (networkCurrentBytesReceived - _counters.networkLastBytesReceived) * 8 / 1000;
-                _counters.networkUploadSpeed = (networkCurrentBytesSent - _counters.networkLastBytesSend) * 8 / 1000;
+                _counters.networkDownloadSpeed = Convert.ToInt64((networkCurrentBytesReceived - _counters.networkLastBytesReceived) * 8 / 1000 / timeDifferenceInSeconds);
+                _counters.networkUploadSpeed = Convert.ToInt64((networkCurrentBytesSent - _counters.networkLastBytesSend) * 8 / 1000 / timeDifferenceInSeconds);
+                _counters.networkTotalBytesReceived += (networkCurrentBytesReceived - _counters.networkLastBytesReceived);
+                _counters.networkTotalBytesSend += (networkCurrentBytesSent - _counters.networkLastBytesSend);
                 _counters.networkLastTime = _counters.networkCurrentTime;
                 _counters.networkLastBytesReceived = networkCurrentBytesReceived;
-                _counters.networkLastBytesSend = networkCurrentBytesSent;
+                _counters.networkLastBytesSend = networkCurrentBytesSent;                
             }
         }
 
@@ -169,7 +176,7 @@ namespace ProcessPerformance
             {
                 _counters.cpuLastTime = DateTime.Now;
                 _counters.cpuLastTotalProcessorTime = totalProcessorTime;
-                _counters.processorTime = 0;
+                _counters.cpuProcessorTime = 0;
             }
             else
             {
@@ -183,7 +190,7 @@ namespace ProcessPerformance
                 _counters.cpuLastTime = _counters.cpuCurrentTime;
                 _counters.cpuLastTotalProcessorTime = _counters.cpuCurrentTotalProcessorTime;
 
-                _counters.processorTime = CPUUsage < 0 ? 0 : CPUUsage * 100;
+                _counters.cpuProcessorTime = CPUUsage < 0 ? 0 : CPUUsage * 100;
             }
         }
 
@@ -205,14 +212,16 @@ namespace ProcessPerformance
                 performanceData = new PerformanceData
                 {
                     Threads = _processList().Count,
-                    ProcessDownloadSpeed = Convert.ToInt64((_counters.received / 1000) / timeDifferenceInSeconds),
-                    ProcessUploadSpeed = Convert.ToInt64((_counters.sent / 1000) / timeDifferenceInSeconds),
-                    ProcessReceivedData = _counters.totalReceived / 1024,
-                    ProcessSentData = _counters.totalSent / 1024,
+                    ProcessDownloadSpeed = Convert.ToInt64((_counters.processDownloadSpeed / 1000) / timeDifferenceInSeconds),
+                    ProcessUploadSpeed = Convert.ToInt64((_counters.processUploadSpeed / 1000) / timeDifferenceInSeconds),
+                    ProcessReceivedData = _counters.processTotalBytesReceived / 1024,
+                    ProcessSentData = _counters.processTotalBytesSent / 1024,
                     ProcessMemoryUsage = _counters.physicalMemory,
-                    ProcessCPUUsage = _counters.processorTime,
+                    ProcessCPUUsage = _counters.cpuProcessorTime,
                     NetworkDownloadSpeed = _counters.networkDownloadSpeed,
-                    NetworkUploadSpeed = _counters.networkUploadSpeed
+                    NetworkUploadSpeed = _counters.networkUploadSpeed,
+                    NetworkReceivedData = _counters.networkTotalBytesReceived / 1024,
+                    NetworkSentData = _counters.networkTotalBytesSend / 1024
                 };
             }
 
@@ -225,12 +234,12 @@ namespace ProcessPerformance
         {
             lock (_counters)
             {
-                _counters.sent = 0;
-                _counters.received = 0;
+                _counters.processUploadSpeed = 0;
+                _counters.processDownloadSpeed = 0;
                 _counters.networkUploadSpeed = 0;
                 _counters.networkDownloadSpeed = 0;
                 _counters.physicalMemory = 0;
-                _counters.processorTime = 0;
+                _counters.cpuProcessorTime = 0;
             }
             _etwStartTime = DateTime.Now;
         }
