@@ -16,7 +16,7 @@ This will start the process performance reporter with default parameters.
 * `-interval:MILISENCONS` Specify the interval time in milisecons (default is 1000).
 * `-csv` Specify output format as CSV (disable by default).
 * `process_1 ... process_n` A list of process names (if empty, all running processes are used).
-* `Ctrl + c`	Is the interrupt signal.
+* `Ctrl + c`	interrupts the execution.
 
 ## Example
 An example of use is monitoring Google Chrome and Microsoft Teams applications every 5 seconds, including system network traffic. 

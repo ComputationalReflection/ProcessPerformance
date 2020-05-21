@@ -10,6 +10,23 @@ using System.Threading.Tasks;
 
 namespace ProcessPerformance
 {
+
+    //////////////////////////////////////////////////////////////////////////////
+    // -------------------------------------------------------------------------//
+    // Project ProcessPerformance                                               //
+    // Computational Reflection Research Group, University of Oviedo            //
+    // -------------------------------------------------------------------------//
+    // File: PerformanceReporter.cs                                             //
+    // Author: garciaRmiguel@uniovi.es                                          //
+    // Description:                                                             //
+    //    Implements the performance reporter that collects information about   //
+    //    the CPU, memory and network usage of one or more processes.           //
+    // -------------------------------------------------------------------------//
+    //////////////////////////////////////////////////////////////////////////////
+
+    /// <summary>
+    /// Implements the performance reporter.
+    /// </summary>    
     public sealed class PerformanceReporter : IDisposable
     {
         private DateTime _etwStartTime;
