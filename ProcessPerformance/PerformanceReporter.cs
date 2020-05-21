@@ -15,7 +15,7 @@ namespace ProcessPerformance
         private DateTime _etwStartTime;
         private TraceEventSession _etwSession;
         private Func<HashSet<int>> _processList;
-
+        private NetworkInterface _network;
         private readonly Counters _counters = new Counters();
 
         private class Counters
@@ -47,41 +47,39 @@ namespace ProcessPerformance
             public long networkDownloadSpeed;
         }
 
-        private PerformanceReporter(String[] processNames)
+        public PerformanceReporter(String[] processNames, string networkIP = null)
         {
-            _processList = () =>
+            if (processNames.Length == 0)
             {
-                return processNames.Aggregate(new List<int>(), (partial, processName) =>
+                _processList = () => { return Process.GetProcesses().Select(p => p.Id).ToHashSet(); };
+            }
+            else
+            {
+                _processList = () =>
                 {
-                    partial.AddRange(Process.GetProcessesByName(processName).Select(p => p.Id)); return partial;
-                }).ToHashSet();
-            };            
-        }
+                    return processNames.Aggregate(new List<int>(), (partial, processName) =>
+                    {
+                        partial.AddRange(Process.GetProcessesByName(processName).Select(p => p.Id)); return partial;
+                    }).ToHashSet();
+                };
+            }
 
-        private PerformanceReporter()
-        {
-            _processList = () => { return Process.GetProcesses().Select(p => p.Id).ToHashSet();};
-        }
+            if(! String.IsNullOrEmpty(networkIP) && NetworkInterface.GetIsNetworkAvailable())
+            {                
+                _network = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(n => n.GetIPProperties().UnicastAddresses.Any( a => a.Address.ToString().Equals(networkIP)));
+            }
 
-        public static PerformanceReporter Create(String[] processNames)
-        {
-            var performancePresenter = processNames.Length == 0 ? new PerformanceReporter() : new PerformanceReporter(processNames);
-            performancePresenter.Initialise();
-            return performancePresenter;
-        }
-
-        private void Initialise()
-        {
             Task.Run(() => StartEtwSession());
         }
 
+        
         private void StartEtwSession()
         {
             try
             {
                 ResetCounters();
 
-                using (_etwSession = new TraceEventSession("MyKernelAndClrEventsSession"))
+                using (_etwSession = new TraceEventSession("KernelTcpIpEventsSession"))
                 {
                     _etwSession.EnableKernelProvider(KernelTraceEventParser.Keywords.All);
                     _etwSession.Source.Kernel.TcpIpRecv += data =>
@@ -129,11 +127,10 @@ namespace ProcessPerformance
 
         public void GetNetworkData()
         {
-            if (!NetworkInterface.GetIsNetworkAvailable())
+            if (_network == null)
                 return;
 
-            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
-            var statistics = NetworkInterface.GetAllNetworkInterfaces()[0].GetIPv4Statistics();
+            var statistics = _network.GetIPv4Statistics();
 
             if (_counters.networkLastTime == null || _counters.networkLastTime == new DateTime())
             {
@@ -198,11 +195,11 @@ namespace ProcessPerformance
         }
 
 
-        public PerformanceData GetPerformanceData()
+        public ReportData GetPerformanceData()
         {
             var timeDifferenceInSeconds = (DateTime.Now - _etwStartTime).TotalSeconds;
 
-            PerformanceData performanceData;
+            ReportData performanceData;
 
             Parallel.Invoke(
                 () => GetMemoryData(),
@@ -212,7 +209,7 @@ namespace ProcessPerformance
 
             lock (_counters)
             {
-                performanceData = new PerformanceData
+                performanceData = new ReportData
                 {
                     Threads = _processList().Count,
                     ProcessDownloadSpeed = Convert.ToInt64((_counters.processDownloadSpeed / 1000) / timeDifferenceInSeconds),
