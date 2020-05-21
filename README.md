@@ -1,6 +1,9 @@
 # ProcessPerformance
 ProcessPerformance is a tool that allows you to collect performance data and memory and network of running processes.
 
+## Prerequisites
+[.NET Core Runtime 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) or higher
+
 ## Usage
 To run ProcessPerformance you just need to execute:
 
