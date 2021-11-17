@@ -80,12 +80,12 @@ namespace ProcessPerformance
             }
         }
 
-        public const string HELP_MESSAGE =  "ProcessPerformance 2020 Computational Reflection Research Group\n" +
+        public const string HELP_MESSAGE =  "ProcessPerformance 2021 Computational Reflection Research Group\n" +
                                 "-help                              Displays this usage message.\n" +
                                 "-network:NETWORK_IP                Specify the network interface IP (disable by default).\n" +                                
                                 "-interval:MILISENCONS              Specify the interval time in milisecons (default is 1000).\n" +
                                 "-csv                               Specify output format as CSV (disable by default).\n" +
-                                "process_1 ... process_n            A list of process names (if empty, all running processes are used).\n" +
+                                "process_1 ... process_n            A list of process names or PIDs (if empty, all running processes are used).\n" +
                                 "\nCtrl + c                         Is the interrupt signal.\n" +
                                 "\n";
     }
