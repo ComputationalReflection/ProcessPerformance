@@ -65,7 +65,8 @@ namespace ProcessPerformance
         }
 
         public PerformanceReporter(String[] processNames, string networkIP = null)
-        {
+        {            
+            
             if (processNames.Length == 0)
             {
                 _processList = () => { return Process.GetProcesses().Select(p => p.Id).ToHashSet(); };
@@ -76,7 +77,11 @@ namespace ProcessPerformance
                 {
                     return processNames.Aggregate(new List<int>(), (partial, processName) =>
                     {
-                        partial.AddRange(Process.GetProcessesByName(processName).Select(p => p.Id)); return partial;
+                        partial.AddRange(Process.GetProcesses().Where(
+                            p => p.MainWindowTitle.ToLower().Contains(processName.ToLower()) 
+                            || p.ProcessName.ToLower().Contains(processName.ToLower())
+                            || p.Id.ToString().Equals(processName)
+                        ).Select(p => p.Id)); return partial;                        
                     }).ToHashSet();
                 };
             }
@@ -98,7 +103,7 @@ namespace ProcessPerformance
 
                 using (_etwSession = new TraceEventSession("KernelTcpIpEventsSession"))
                 {
-                    _etwSession.EnableKernelProvider(KernelTraceEventParser.Keywords.All);
+                    _etwSession.EnableKernelProvider(KernelTraceEventParser.Keywords.NetworkTCPIP);
                     _etwSession.Source.Kernel.TcpIpRecv += data =>
                     {
                         if (_processList().Contains(data.ProcessID))
