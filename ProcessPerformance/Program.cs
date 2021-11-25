@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,20 +30,37 @@ namespace ProcessPerformance
         {            
             var parameters = ParseArguments(args);
             var reporter = new PerformanceReporter(parameters.ProcessNames, parameters.NetworkIP);
-            if(parameters.CSV)
-                Console.WriteLine($"Process Name(s);Thread(s);CPU (%);Memory (MB);Process Sent (KB);Process Upload Speed (kbps);Process Received (KB);Process Download Speed (kbps)" + (String.IsNullOrEmpty(parameters.NetworkIP)?"":";Network Sent (KB);Network Upload Speed (kbps);Network Received (KB);Network Download Speed (kbps)"));
+
+            NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
+            if (parameters.CSV)
+                Console.WriteLine($"Process Name(s),Thread(s),CPU (%),Memory (MB),Process Sent (KB),Process Upload Speed (kbps),Process Received (KB),Process Download Speed (kbps)" + (String.IsNullOrEmpty(parameters.NetworkIP)?"":",Network Sent (KB),Network Upload Speed (kbps),Network Received (KB),Network Download Speed (kbps)"));
             while (true)
             {
                 Task.Delay(parameters.IntervalTime).Wait();
                 var result = reporter.GetPerformanceData();
                 if(parameters.CSV)
-                    Console.WriteLine($"{String.Join('+', parameters.ProcessNames)};{result.Threads};{ result.ProcessCPUUsage.ToString("0.00")};{result.ProcessMemoryUsage.ToString("N0")};" +
-                    $"{result.ProcessSentData.ToString("N0")};{result.ProcessUploadSpeed.ToString("N0")};{result.ProcessReceivedData.ToString("N0")};{result.ProcessDownloadSpeed.ToString("N0")}" +
-                    (String.IsNullOrEmpty(parameters.NetworkIP) ? "" : $";{result.NetworkSentData.ToString("N0")};{result.NetworkUploadSpeed.ToString("N0")};{result.NetworkReceivedData.ToString("N0")};{result.NetworkDownloadSpeed.ToString("N0")}"));
-                else
-                    Console.WriteLine($"{String.Join('+', parameters.ProcessNames)} ({result.Threads} ths) = CPU: { result.ProcessCPUUsage.ToString("0.00")} % | Memory: {result.ProcessMemoryUsage.ToString("N0")} MB | " +
-                    $"Process: Sent {result.ProcessSentData.ToString("N0")} KB ({result.ProcessUploadSpeed.ToString("N0")} kbps) - Received {result.ProcessReceivedData.ToString("N0")} KB ({result.ProcessDownloadSpeed.ToString("N0")} kbps)" +
-                    (String.IsNullOrEmpty(parameters.NetworkIP) ? "" : $" | Network: Sent {result.NetworkSentData.ToString("N0")} KB ({result.NetworkUploadSpeed.ToString("N0")} kbps) - Received {result.NetworkReceivedData.ToString("N0")} KB ({result.NetworkDownloadSpeed.ToString("N0")} kbps)"));                
+                    Console.WriteLine($"{String.Join('+', parameters.ProcessNames)}," +
+                        $"{result.Threads}," +
+                        $"{ result.ProcessCPUUsage.ToString("P", nfi)}," +
+                        $"{result.ProcessMemoryUsage.ToString("N0",nfi)}," +
+                        $"{result.ProcessSentData.ToString("N0",nfi)}," +
+                        $"{result.ProcessUploadSpeed.ToString("N0", nfi)}," +
+                        $"{result.ProcessReceivedData.ToString("N0", nfi)}," +
+                        $"{result.ProcessDownloadSpeed.ToString("N0", nfi)}" +
+                        (String.IsNullOrEmpty(parameters.NetworkIP) ? "" : $"," +
+                        $"{result.NetworkSentData.ToString("N0", nfi)}," +
+                        $"{result.NetworkUploadSpeed.ToString("N0", nfi)}," +
+                        $"{result.NetworkReceivedData.ToString("N0", nfi)}," +
+                        $"{result.NetworkDownloadSpeed.ToString("N0", nfi)}"));
+                else 
+                    Console.WriteLine($"{String.Join('+', parameters.ProcessNames)} ({result.Threads} ths):" +
+                        $" CPU: { result.ProcessCPUUsage.ToString("P",nfi)} " +
+                        $"| Memory: {result.ProcessMemoryUsage.ToString("N0", nfi)} MB " +
+                        $"| Process: Sent {result.ProcessSentData.ToString("N0", nfi)} KB ({result.ProcessUploadSpeed.ToString("N0", nfi)} kbps) " +
+                        $"- Received {result.ProcessReceivedData.ToString("N0", nfi)} KB ({result.ProcessDownloadSpeed.ToString("N0", nfi)} kbps)" +
+                        (String.IsNullOrEmpty(parameters.NetworkIP) ? "" : $" " +
+                        $"| Network: Sent {result.NetworkSentData.ToString("N0", nfi)} KB ({result.NetworkUploadSpeed.ToString("N0", nfi)} kbps) " +
+                        $"- Received {result.NetworkReceivedData.ToString("N0", nfi)} KB ({result.NetworkDownloadSpeed.ToString("N0", nfi)} kbps)"));                
             }
         }
 
@@ -80,13 +98,13 @@ namespace ProcessPerformance
             }
         }
 
-        public const string HELP_MESSAGE =  "ProcessPerformance 2021 Computational Reflection Research Group\n" +
+        public const string HELP_MESSAGE =  "ProcessPerformance 2021 Computational Reflection Research Group.\n" +
                                 "-help                              Displays this usage message.\n" +
-                                "-network:NETWORK_IP                Specify the network interface IP (disable by default).\n" +                                
-                                "-interval:MILISENCONS              Specify the interval time in milisecons (default is 1000).\n" +
+                                "-network:NETWORK_IP                Specify the network interface IP (disable by default).\n" +
+                                "-interval:MILLISECONDS             Specify the interval time in milliseconds (default is 1000).\n" +
                                 "-csv                               Specify output format as CSV (disable by default).\n" +
-                                "process_1 ... process_n            A list of process names or PIDs (if empty, all running processes are used).\n" +
-                                "\nCtrl + c                         Is the interrupt signal.\n" +
+                                "process_1 ... process_n            A space-separated list of processes names or PIDs (if empty, all running processes are used).\n" +
+                                "\nCtrl + c                         Terminate the execution of the program.\n" +
                                 "\n";
     }
 }
