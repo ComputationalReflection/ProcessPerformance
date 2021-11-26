@@ -2,7 +2,7 @@
   "profiles": {
     "ProcessPerformance": {
       "commandName": "Project",
-      "commandLineArgs": "chrome -network:192.168.0.202 -interval:2000"
+      "commandLineArgs": "chrome -network:192.168.0.202"
     }
   }
 }

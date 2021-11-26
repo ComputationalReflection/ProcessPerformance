@@ -33,7 +33,7 @@ namespace ProcessPerformance
 
             NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
             if (parameters.CSV)
-                Console.WriteLine($"Time Stamp,GAP,Process Name(s),Thread(s),CPU (%),Memory (MB),Process Sent (KB),Process Upload Speed (kbps),Process Received (KB),Process Download Speed (kbps)" + (String.IsNullOrEmpty(parameters.NetworkIP) ? "" : ",Network Sent (KB),Network Upload Speed (kbps),Network Received (KB),Network Download Speed (kbps)"));
+                Console.WriteLine($"Process Name(s),Processes(s),CPU (%),Memory (MB),Process Sent (KB),Process Upload Speed (kbps),Process Received (KB),Process Download Speed (kbps)" + (String.IsNullOrEmpty(parameters.NetworkIP) ? "" : ",Network Sent (KB),Network Upload Speed (kbps),Network Received (KB),Network Download Speed (kbps)"));
             while (true)
             {
                 Task.Delay(parameters.IntervalTime).Wait();
