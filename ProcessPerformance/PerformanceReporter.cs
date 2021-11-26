@@ -28,12 +28,12 @@ namespace ProcessPerformance
     /// Implements the performance reporter.
     /// </summary>    
     public sealed class PerformanceReporter : IDisposable
-    {
-        private DateTime _etwStartTime;
+    {        
         private TraceEventSession _etwSession;
         private Func<HashSet<int>> _processList;
         private NetworkInterface _network;
         private readonly Counters _counters = new Counters();
+        private int _intervalTime;
 
         private class Counters
         {
@@ -64,9 +64,9 @@ namespace ProcessPerformance
             public long networkDownloadSpeed;
         }
 
-        public PerformanceReporter(String[] processNames, string networkIP = null)
-        {            
-            
+        public PerformanceReporter(String[] processNames, int intervalTime = 1000, string networkIP = null)
+        {
+
             if (processNames.Length == 0)
             {
                 _processList = () => { return Process.GetProcesses().Select(p => p.Id).ToHashSet(); };
@@ -78,23 +78,23 @@ namespace ProcessPerformance
                     return processNames.Aggregate(new List<int>(), (partial, processName) =>
                     {
                         partial.AddRange(Process.GetProcesses().Where(
-                            p => p.MainWindowTitle.ToLower().Contains(processName.ToLower()) 
+                            p => p.MainWindowTitle.ToLower().Equals(processName.ToLower())
                             || p.ProcessName.ToLower().Contains(processName.ToLower())
                             || p.Id.ToString().Equals(processName)
-                        ).Select(p => p.Id)); return partial;                        
+                        ).Select(p => p.Id)); return partial;
                     }).ToHashSet();
                 };
             }
 
-            if(! String.IsNullOrEmpty(networkIP) && NetworkInterface.GetIsNetworkAvailable())
-            {                
-                _network = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(n => n.GetIPProperties().UnicastAddresses.Any( a => a.Address.ToString().Equals(networkIP)));
+            if (!String.IsNullOrEmpty(networkIP) && NetworkInterface.GetIsNetworkAvailable())
+            {
+                _network = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(n => n.GetIPProperties().UnicastAddresses.Any(a => a.Address.ToString().Equals(networkIP)));
             }
-
+            _intervalTime = intervalTime;
             Task.Run(() => StartEtwSession());
         }
 
-        
+
         private void StartEtwSession()
         {
             try
@@ -166,17 +166,16 @@ namespace ProcessPerformance
             }
             else
             {
-                _counters.networkCurrentTime = DateTime.Now;
-                var timeDifferenceInSeconds = (_counters.networkCurrentTime - _counters.networkLastTime).TotalSeconds;
+                _counters.networkCurrentTime = DateTime.Now;                
                 long networkCurrentBytesReceived = statistics.BytesReceived;
                 long networkCurrentBytesSent = statistics.BytesSent;
-                _counters.networkDownloadSpeed = Convert.ToInt64((networkCurrentBytesReceived - _counters.networkLastBytesReceived) * 8 / 1000 / timeDifferenceInSeconds);
-                _counters.networkUploadSpeed = Convert.ToInt64((networkCurrentBytesSent - _counters.networkLastBytesSend) * 8 / 1000 / timeDifferenceInSeconds);
+                _counters.networkDownloadSpeed = Convert.ToInt64((networkCurrentBytesReceived - _counters.networkLastBytesReceived) * 8 / 1000 / (_intervalTime/ 1000));
+                _counters.networkUploadSpeed = Convert.ToInt64((networkCurrentBytesSent - _counters.networkLastBytesSend) * 8 / 1000 / (_intervalTime / 1000));
                 _counters.networkTotalBytesReceived += (networkCurrentBytesReceived - _counters.networkLastBytesReceived);
                 _counters.networkTotalBytesSend += (networkCurrentBytesSent - _counters.networkLastBytesSend);
                 _counters.networkLastTime = _counters.networkCurrentTime;
                 _counters.networkLastBytesReceived = networkCurrentBytesReceived;
-                _counters.networkLastBytesSend = networkCurrentBytesSent;                
+                _counters.networkLastBytesSend = networkCurrentBytesSent;
             }
         }
 
@@ -218,11 +217,8 @@ namespace ProcessPerformance
 
 
         public ReportData GetPerformanceData()
-        {
-            var timeDifferenceInSeconds = (DateTime.Now - _etwStartTime).TotalSeconds;
-
+        {            
             ReportData performanceData;
-
             Parallel.Invoke(
                 () => GetMemoryData(),
                 () => GetCPUData(),
@@ -232,10 +228,10 @@ namespace ProcessPerformance
             lock (_counters)
             {
                 performanceData = new ReportData
-                {
+                {            
                     Threads = _processList().Count,
-                    ProcessDownloadSpeed = Convert.ToInt64((_counters.processDownloadSpeed / 1000) / timeDifferenceInSeconds),
-                    ProcessUploadSpeed = Convert.ToInt64((_counters.processUploadSpeed / 1000) / timeDifferenceInSeconds),
+                    ProcessDownloadSpeed = Convert.ToInt64((_counters.processDownloadSpeed / 1000) / (_intervalTime / 1000)),
+                    ProcessUploadSpeed = Convert.ToInt64((_counters.processUploadSpeed / 1000) / (_intervalTime / 1000)),
                     ProcessReceivedData = _counters.processTotalBytesReceived / 1024,
                     ProcessSentData = _counters.processTotalBytesSent / 1024,
                     ProcessMemoryUsage = _counters.physicalMemory,
@@ -262,8 +258,7 @@ namespace ProcessPerformance
                 _counters.networkDownloadSpeed = 0;
                 _counters.physicalMemory = 0;
                 _counters.cpuProcessorTime = 0;
-            }
-            _etwStartTime = DateTime.Now;
+            }          
         }
 
         public void Dispose()

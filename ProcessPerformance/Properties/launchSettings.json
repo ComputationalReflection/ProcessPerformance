@@ -2,7 +2,7 @@
   "profiles": {
     "ProcessPerformance": {
       "commandName": "Project",
-      "commandLineArgs": "chrome tomcat neo4j postgres -network:192.168.1.103 -interval:500"
+      "commandLineArgs": "chrome -network:192.168.0.202 -interval:2000"
     }
   }
 }
