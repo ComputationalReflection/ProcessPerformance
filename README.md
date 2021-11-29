@@ -1,14 +1,19 @@
 # ProcessPerformance
-ProcessPerformance is a tool that allows you to collect performance data and memory and network of running processes.
+ProcessPerformance is a an easy-to-use command-line tool that provides runtime information about the CPU, memory, and network resources consumed by any combination of running processes. It does not inject code in the program sources or the binaries, avoiding the overhead caused by that measurement technique. ProcessPerformance is implemented as an open-source .NET Core application, which runs on Linux, macOS, and Windows.
 
 ## Prerequisites
-[.NET Core Runtime 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) or higher
+[.NET Core Runtime 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) or higher.
 
 ## Usage
-To run ProcessPerformance you just need to execute:
+To run ProcessPerformance you just need to execute, On Windows:
 
 ```bash
 ProcessPerformance.exe	
+```
+In Linux and macOS:
+
+```bash
+dotnet run ProcessPerformance	
 ```
 
 This will start the process performance reporter with default parameters.
