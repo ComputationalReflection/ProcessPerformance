@@ -1,8 +1,7 @@
 {
   "profiles": {
     "ProcessPerformance": {
-      "commandName": "Project",
-      "commandLineArgs": "chrome"
+      "commandName": "Project"
     }
   }
 }

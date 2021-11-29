@@ -15,7 +15,7 @@ namespace ProcessPerformance
     //    Encapsulates all the information collected in the report.             //
     // -------------------------------------------------------------------------//
     //////////////////////////////////////////////////////////////////////////////
-    
+
     /// <summary>
     /// Encapsulates all the information collected in the report.
     /// </summary>
