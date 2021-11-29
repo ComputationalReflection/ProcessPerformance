@@ -1,5 +1,5 @@
 # ProcessPerformance
-ProcessPerformance is a an easy-to-use command-line tool that provides runtime information about the CPU, memory, and network resources consumed by any combination of running processes. It does not inject code in the program sources or the binaries, avoiding the overhead caused by that measurement technique. ProcessPerformance is implemented as an open-source .NET Core application, which runs on Linux, macOS, and Windows.
+ProcessPerformance is an easy-to-use command-line tool that provides runtime information about the CPU, memory, and network resources consumed by any combination of running processes. It does not inject code in the program sources or the binaries, avoiding the overhead caused by that measurement technique. ProcessPerformance is implemented as an open-source .NET Core application, which runs on Linux, macOS, and Windows.
 
 ## Prerequisites
 [.NET Core Runtime 3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) or higher.
@@ -21,10 +21,10 @@ This will start the process performance reporter with default parameters.
 ## Options
 * `-help` Display the command line arguments.
 * `-network:NETWORK_IP` Specify P address of the network interface used to measure data transmission (disabled by default).
-* `-interval:MILLISECONDS` The interval used to gather the runtime information of resource consumption, expressed in milliseconds. The default value is 1,000 (one second)..
+* `-interval:MILLISECONDS` The interval used to gather the runtime information of resource consumption, expressed in milliseconds. The default value is 1,000 (one second).
 * `-csv`  Show the output in comma-separated values (CSV) format (disabled by default).
 * `process_1 ... process_n` A space-separated list of the names or PIDs (process identifiers) of the processes to be monitored. If no process is passed, the overall system resources are displayed.
-* `Ctrl + c` Termitate the execution of ProcessPerformance.
+* `Ctrl + c` Terminate the execution of ProcessPerformance.
 
 ## Example
 An example of use is monitoring Google Chrome and Microsoft Teams applications every 5 seconds, including system network traffic: 
