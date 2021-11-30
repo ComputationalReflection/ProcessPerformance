@@ -13,7 +13,7 @@ ProcessPerformance.exe
 On Linux and macOS:
 
 ```bash
-dotnet run ProcessPerformance	
+dotnet ProcessPerformance.dll
 ```
 
 This will start the process performance reporter with default parameters.
