@@ -31,6 +31,7 @@ namespace ProcessPerformance
     {        
         private TraceEventSession _etwSession;
         private Func<HashSet<int>> _processList;
+        private Process _commandProcess;
         private NetworkInterface _network;
         private readonly Counters _counters = new Counters();
         private int _intervalTime;
@@ -64,34 +65,77 @@ namespace ProcessPerformance
             public long networkDownloadSpeed;
         }
 
-        public PerformanceReporter(String[] processNames, int intervalTime = 1000, string networkIP = null)
+        public PerformanceReporter(string command, IList<string> processNames, int intervalTime = 1000, string networkIP = null)
         {
-
-            if (processNames.Length == 0)
+            if (string.IsNullOrEmpty(command))
             {
-                _processList = () => { return Process.GetProcesses().Select(p => p.Id).ToHashSet(); };
+                if (processNames.Count == 0)
+                {
+                    _processList = () => { return Process.GetProcesses().Select(p => p.Id).ToHashSet(); };
+                }
+                else
+                {
+                    _processList = () =>
+                    {
+                        return processNames.Aggregate(new List<int>(), (partial, processName) =>
+                        {
+                            partial.AddRange(Process.GetProcesses().Where(
+                                p => p.MainWindowTitle.ToLower().Equals(processName.ToLower())
+                                || p.ProcessName.ToLower().Contains(processName.ToLower())
+                                || p.Id.ToString().Equals(processName)
+                            ).Select(p => p.Id)); return partial;
+                        }).ToHashSet();
+                    };
+                }
             }
             else
             {
+                processNames.Clear();
+                processNames.Add(RunCommand(command));
                 _processList = () =>
-                {
-                    return processNames.Aggregate(new List<int>(), (partial, processName) =>
-                    {
-                        partial.AddRange(Process.GetProcesses().Where(
-                            p => p.MainWindowTitle.ToLower().Equals(processName.ToLower())
-                            || p.ProcessName.ToLower().Contains(processName.ToLower())
-                            || p.Id.ToString().Equals(processName)
-                        ).Select(p => p.Id)); return partial;
-                    }).ToHashSet();
+                {                    
+                    return new HashSet<int> { _commandProcess.Id };
                 };
             }
+
 
             if (!String.IsNullOrEmpty(networkIP) && NetworkInterface.GetIsNetworkAvailable())
             {
                 _network = NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(n => n.GetIPProperties().UnicastAddresses.Any(a => a.Address.ToString().Equals(networkIP)));
             }
             _intervalTime = intervalTime;
-            Task.Run(() => StartEtwSession());
+            Task.Run(() => StartEtwSession());            
+        }
+
+        private string RunCommand(string command)
+        {
+            var parts = command.Split(' ', 2);
+            if (parts.Length == 0) throw new ArgumentException("Invalid command");
+
+            string fileName = parts[0];
+            string arguments = parts.Length > 1 ? parts[1] : "";
+
+            _commandProcess = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = fileName,
+                    Arguments = arguments,
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                },
+                EnableRaisingEvents = true
+            };
+
+            _commandProcess.Exited += (s, e) =>
+            {
+                Environment.Exit(_commandProcess.ExitCode);
+            };
+
+            _commandProcess.Start();
+            return fileName;
         }
 
 
@@ -169,8 +213,8 @@ namespace ProcessPerformance
                 _counters.networkCurrentTime = DateTime.Now;                
                 long networkCurrentBytesReceived = statistics.BytesReceived;
                 long networkCurrentBytesSent = statistics.BytesSent;
-                _counters.networkDownloadSpeed = Convert.ToInt64((networkCurrentBytesReceived - _counters.networkLastBytesReceived) * 8 / 1000 / (_intervalTime/ 1000));
-                _counters.networkUploadSpeed = Convert.ToInt64((networkCurrentBytesSent - _counters.networkLastBytesSend) * 8 / 1000 / (_intervalTime / 1000));
+                _counters.networkDownloadSpeed = Convert.ToInt64((networkCurrentBytesReceived - _counters.networkLastBytesReceived) * 8 / 1000.0 / (_intervalTime / 1000.0));
+                _counters.networkUploadSpeed = Convert.ToInt64((networkCurrentBytesSent - _counters.networkLastBytesSend) * 8 / 1000.0 / (_intervalTime / 1000.0));
                 _counters.networkTotalBytesReceived += (networkCurrentBytesReceived - _counters.networkLastBytesReceived);
                 _counters.networkTotalBytesSend += (networkCurrentBytesSent - _counters.networkLastBytesSend);
                 _counters.networkLastTime = _counters.networkCurrentTime;
@@ -230,8 +274,8 @@ namespace ProcessPerformance
                 performanceData = new ReportData
                 {            
                     Threads = _processList().Count,
-                    ProcessDownloadSpeed = Convert.ToInt64((_counters.processDownloadSpeed / 1000) / (_intervalTime / 1000)),
-                    ProcessUploadSpeed = Convert.ToInt64((_counters.processUploadSpeed / 1000) / (_intervalTime / 1000)),
+                    ProcessDownloadSpeed = Convert.ToInt64((_counters.processDownloadSpeed / 1000.0) / (_intervalTime / 1000.0)),
+                    ProcessUploadSpeed = Convert.ToInt64((_counters.processUploadSpeed / 1000.0) / (_intervalTime / 1000.0)),
                     ProcessReceivedData = _counters.processTotalBytesReceived / 1024,
                     ProcessSentData = _counters.processTotalBytesSent / 1024,
                     ProcessMemoryUsage = _counters.physicalMemory,
@@ -264,6 +308,10 @@ namespace ProcessPerformance
         public void Dispose()
         {
             _etwSession?.Dispose();
+            if (_commandProcess?.HasExited == false)
+            {
+                _commandProcess.Kill();
+            }
         }
     }
 }

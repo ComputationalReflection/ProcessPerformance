@@ -27,9 +27,19 @@ namespace ProcessPerformance
     public class Program
     {
         public static void Main(string[] args)
-        {            
+        {
             var parameters = ParseArguments(args);
-            var reporter = new PerformanceReporter(parameters.ProcessNames, parameters.IntervalTime, parameters.NetworkIP);
+            var reporter = new PerformanceReporter(parameters.Command, parameters.ProcessNames, parameters.IntervalTime, parameters.NetworkIP);
+
+            Console.CancelKeyPress += (sender, e) =>
+            {                                          
+                Environment.Exit(0);
+            };
+
+            AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
+            {             
+                reporter.Dispose();                
+            };
 
             NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
             if (parameters.CSV)
@@ -76,6 +86,7 @@ namespace ProcessPerformance
             var networkIP = "";
             var intervalTime = 1000;
             var csv = false;
+            var command = "";
             try
             {
                 foreach (var arg in args)
@@ -91,10 +102,12 @@ namespace ProcessPerformance
                         csv = true;
                     else if (arg.ToLower().StartsWith("-interval:"))
                         intervalTime = int.Parse(arg.Split(':')[1]);
+                    else if (arg.ToLower().StartsWith("-command:"))
+                        command = arg.Replace("-command:","").Replace("\"",""); //Para el Miguel de dentro de un rato se corta por las barras de direcctiorio
                     else
                         processNames.Add(arg);
                 }
-                return new Parameters() { ProcessNames = processNames.ToArray(), NetworkIP = networkIP, IntervalTime = intervalTime, CSV = csv };
+                return new Parameters() {Command = command, ProcessNames = processNames, NetworkIP = networkIP, IntervalTime = intervalTime, CSV = csv };
             }
             catch
             {
@@ -109,8 +122,9 @@ namespace ProcessPerformance
                                 "-network:NETWORK_IP                Specify the network interface IP (disable by default).\n" +
                                 "-interval:MILLISECONDS             Specify the time interval in milliseconds (default is 1000).\n" +
                                 "-csv                               Specify output format as CSV (disable by default).\n" +
-                                "process_1 ... process_n            A space-separated list of processes names or PIDs (if empty, all running processes are used).\n" +
+                                "-command:\"COMMAND\"               Specify a command enclosed in double quotes to be executed (the program will run until the command finishes; if empty, the list of processes is used).\n" +
+                                "process_1 ... process_n            A space-separated list of process names or PIDs (if the command parameter is present, it is used instead; if empty, all running processes are used).\n" +
                                 "\nCtrl + c                         Terminate the execution of the program.\n" +
-                                "\n";
+                                "\n";        
     }
 }

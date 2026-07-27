@@ -24,7 +24,7 @@ namespace ProcessPerformance
         /// <summary>
         /// Input process names (default is empty, all running processes)
         /// </summary>
-        public string[] ProcessNames; 
+        public IList<string> ProcessNames; 
 
         /// <summary>
         /// Network IP (default is null)
@@ -40,5 +40,10 @@ namespace ProcessPerformance
         /// CSV option (default is false)
         /// </summary>
         public bool CSV;
+
+        /// <summary>
+        /// Input command (default is empty)
+        /// </summary>
+        public string Command;
     }
 }

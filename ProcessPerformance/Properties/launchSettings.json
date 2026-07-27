@@ -1,7 +1,8 @@
 {
   "profiles": {
     "ProcessPerformance": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-interval:100 -csv -command:\"java -cp C:\\Users\\Miguel\\Source\\reflectator\\evaluation\\reflected\\jg_mt_s2\\mt-series\\RF-full\\out JGFSeriesBenchSizeC 8\""
     }
   }
 }
