@@ -23,6 +23,7 @@ This will start the process performance reporter with default parameters.
 * `-network:NETWORK_IP` Specify P address of the network interface used to measure data transmission (disabled by default).
 * `-interval:MILLISECONDS` The interval used to gather the runtime information of resource consumption, expressed in milliseconds. The default value is 1,000 (one second).
 * `-csv`  Show the output in comma-separated values (CSV) format (disabled by default).
+* `-command:"COMMAND"` Specify a command enclosed in double quotes to be executed (the program will run until the command finishes; if empty, the list of processes is used).
 * `process_1 ... process_n` A space-separated list of the names or PIDs (process identifiers) of the processes to be monitored. If no process is passed, the overall system resources are displayed.
 * `Ctrl + c` Terminate the execution of ProcessPerformance.
 
